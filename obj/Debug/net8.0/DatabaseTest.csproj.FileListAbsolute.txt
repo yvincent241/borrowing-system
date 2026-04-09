@@ -1,0 +1,5 @@
+D:\website test\obj\Debug\net8.0\DatabaseTest.csproj.AssemblyReference.cache
+D:\website test\obj\Debug\net8.0\DatabaseTest.GeneratedMSBuildEditorConfig.editorconfig
+D:\website test\obj\Debug\net8.0\DatabaseTest.AssemblyInfoInputs.cache
+D:\website test\obj\Debug\net8.0\DatabaseTest.AssemblyInfo.cs
+D:\website test\obj\Debug\net8.0\DatabaseTest.csproj.CoreCompileInputs.cache

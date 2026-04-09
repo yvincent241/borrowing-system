@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal - Borrowing System</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Portal</h1>
+    <section class="card">
+      <p>Manage items in the borrowing system.</p>
+      <button onclick="window.location.href='index.html'">Back to selection</button>
+      <div class="admin-grid">
+        <div>
+          <h2>Add New Item</h2>
+          <form id="itemForm">
+            <label>
+              Name:
+              <input type="text" id="itemName" required />
+            </label>
+            <label>
+              Description:
+              <input type="text" id="itemDescription" />
+            </label>
+            <label>
+              Quantity:
+              <input type="number" id="itemQuantity" min="1" value="1" required />
+            </label>
+            <button type="submit">Add Item</button>
+          </form>
+          <div id="message"></div>
+        </div>
+        <div>
+          <h2>Items</h2>
+          <button id="refreshBtn">Refresh items</button>
+          <ul id="itemsList"></ul>
+        </div>
+        <div>
+          <h2>Borrower Dashboard</h2>
+          <button id="refreshBorrowersBtn">Refresh borrowers</button>
+          <ul id="borrowersList"></ul>
+        </div>
+      </div>
+
+      <!-- Edit Item Modal -->
+      <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close" onclick="closeEditModal()">&times;</span>
+          <h2>Edit Item</h2>
+          <form id="editForm">
+            <input type="hidden" id="editItemId" />
+            <label>
+              Name:
+              <input type="text" id="editItemName" required />
+            </label>
+            <label>
+              Description:
+              <input type="text" id="editItemDescription" />
+            </label>
+            <label>
+              Quantity:
+              <input type="number" id="editItemQuantity" min="0" required />
+            </label>
+            <button type="submit">Update Item</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Borrow Record Modal -->
+      <div id="recordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close" onclick="document.getElementById('recordModal').style.display='none'">&times;</span>
+          <h2 id="recordModalTitle">Manage Borrower Records</h2>
+          <input type="hidden" id="recordUserId" />
+          <div id="recordMessage"></div>
+          <form id="recordForm" onsubmit="event.preventDefault(); handleAddBorrowRecord();">
+            <h3>Add New Record</h3>
+            <label>
+              Item:
+              <select id="recordItemSelect" required></select>
+            </label>
+            <label>
+              Due date:
+              <input type="date" id="recordDueDate" />
+            </label>
+            <button type="submit">Add Record</button>
+          </form>
+          <h3>Existing Records</h3>
+          <ul id="recordList"></ul>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="js/admin.js"></script>
+</body>
+</html>

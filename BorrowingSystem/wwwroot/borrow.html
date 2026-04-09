@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Borrow Item - Borrowing System</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Borrow an Item</h1>
+    <section class="card">
+      <p>Confirm to borrow this item.</p>
+      <button onclick="window.location.href='user.html'">Back to items</button>
+      <div id="itemDetails"></div>
+      <button id="borrowBtn" onclick="confirmBorrow()" style="background:#28a745;margin-top:12px;">Confirm Borrow</button>
+      <div id="resultMessage"></div>
+    </section>
+  </div>
+  <script src="js/borrow.js"></script>
+</body>
+</html>

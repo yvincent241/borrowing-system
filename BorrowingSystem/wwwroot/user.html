@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Portal - Borrowing System</title>
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>User Portal</h1>
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <p>Welcome, <strong id="userName">User</strong>!</p>
+          <p>ID: <span id="userIdNumber">-</span> | Status: <span id="userStatus">-</span></p>
+        </div>
+        <button onclick="logout()" class="logout-btn" style="background:#dc3545;">Logout</button>
+      </div>
+      <button id="refreshBtn">Refresh items</button>
+      <ul id="itemsList"></ul>
+      <section class="card">
+        <h2>Active Borrowed Items</h2>
+        <ul id="borrowedList"></ul>
+      </section>
+      <section class="card">
+        <h2>Returned Items</h2>
+        <ul id="historyList"></ul>
+      </section>
+    </section>
+  </div>
+  <script src="js/user.js"></script>
+</body>
+</html>
