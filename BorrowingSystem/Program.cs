@@ -36,8 +36,7 @@ app.UseRouting();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapControllers();
-app.MapWhen(context => !context.Request.Path.StartsWithSegments("/api"), 
-    app => app.MapFallbackToFile("index.html"));
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
