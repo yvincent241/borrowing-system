@@ -100,3 +100,4 @@ D:\website test\BorrowingSystem\obj\Debug\net8.0\refint\BorrowingSystem.dll
 D:\website test\BorrowingSystem\obj\Debug\net8.0\BorrowingSystem.pdb
 D:\website test\BorrowingSystem\obj\Debug\net8.0\BorrowingSystem.genruntimeconfig.cache
 D:\website test\BorrowingSystem\obj\Debug\net8.0\ref\BorrowingSystem.dll
+D:\website test\BorrowingSystem\obj\Debug\net8.0\BorrowingSystem.sourcelink.json
