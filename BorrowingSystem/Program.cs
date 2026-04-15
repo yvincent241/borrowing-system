@@ -34,7 +34,7 @@ static string ConvertDatabaseUrlToConnectionString(string databaseUrl)
         Password = userInfo.Length > 1 ? userInfo[1] : string.Empty,
         Database = uri.AbsolutePath.TrimStart('/'),
         SslMode = SslMode.Prefer,
-        TrustServerCertificate = true
+        // TrustServerCertificate = true  // Obsolete in Npgsql 8.0+
     };
 
     return builder.ToString();

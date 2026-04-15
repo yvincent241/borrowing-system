@@ -8,10 +8,8 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the solution file and restore dependencies
-COPY ["website test.sln", "./"]
+# Copy csproj and restore dependencies directly (no sln needed)
 COPY ["BorrowingSystem/BorrowingSystem.csproj", "BorrowingSystem/"]
-COPY ["DatabaseTest/DatabaseTest.csproj", "DatabaseTest/"]
 RUN dotnet restore "BorrowingSystem/BorrowingSystem.csproj"
 
 # Copy the rest of the source code
