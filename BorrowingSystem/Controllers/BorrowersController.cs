@@ -194,9 +194,7 @@ namespace BorrowingSystem.Controllers
             if (item == null)
                 return NotFound("Item not found.");
 
-            if (item.Quantity <= 0)
-                return BadRequest("Selected item is out of stock.");
-
+            // Admin add: allow even if out of stock (force assign)
             var borrowRecord = new BorrowRecord
             {
                 UserId = borrower.Id,
@@ -207,18 +205,17 @@ namespace BorrowingSystem.Controllers
             };
 
             await _borrowRepository.AddAsync(borrowRecord);
-            item.Quantity--;
-            item.IsAvailable = item.Quantity > 0;
-            if (borrower.Status != "Good")
+            if (item.Quantity > 0) // Only decrement if available
             {
-                borrower.Status = "CurrentlyBorrowing";
+                item.Quantity--;
+                item.IsAvailable = item.Quantity > 0;
+                await _itemRepository.UpdateAsync(item);
+                await _itemRepository.SaveChangesAsync();
             }
-
-            await _itemRepository.UpdateAsync(item);
+            borrower.Status = "CurrentlyBorrowing";
             await _userRepository.UpdateAsync(borrower);
-            await _borrowRepository.SaveChangesAsync();
-            await _itemRepository.SaveChangesAsync();
             await _userRepository.SaveChangesAsync();
+            await _borrowRepository.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetBorrowerRecords), new { idNumber = borrower.IdNumber }, borrowRecord);
         }
@@ -332,17 +329,28 @@ namespace BorrowingSystem.Controllers
             if (borrower == null)
                 return NotFound();
 
-            var activeRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id && br.ReturnDate == null);
-            if (activeRecords.Any())
-                return BadRequest("Cannot clean records while there are active borrowed items. Return all items first.");
-
+            // Admin force-clear: delete all records regardless of active status (adjust inventory for active ones)
             var allRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id);
             foreach (var record in allRecords)
             {
+                if (record.ReturnDate == null) // Active: return to inventory
+                {
+                    var item = await _itemRepository.GetByIdAsync(record.ItemId);
+                    if (item != null)
+                    {
+                        item.Quantity++;
+                        item.IsAvailable = true;
+                        await _itemRepository.UpdateAsync(item);
+                        await _itemRepository.SaveChangesAsync();
+                    }
+                }
                 await _borrowRepository.DeleteAsync(record.Id);
             }
 
             await _borrowRepository.SaveChangesAsync();
+            borrower.Status = "Good"; // Reset status
+            await _userRepository.UpdateAsync(borrower);
+            await _userRepository.SaveChangesAsync();
             return NoContent();
         }
 
