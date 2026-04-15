@@ -145,6 +145,207 @@ namespace BorrowingSystem.Controllers
             return NoContent();
         }
 
+        [HttpGet("{idNumber}/records")]
+        public async Task<ActionResult<object>> GetBorrowerRecords(string idNumber)
+        {
+            var borrower = await _userRepository.FirstOrDefaultAsync(u => u.IdNumber == idNumber);
+            if (borrower == null)
+                return NotFound();
+
+            var records = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id);
+            var recordList = new List<object>();
+
+            foreach (var record in records)
+            {
+                var item = await _itemRepository.GetByIdAsync(record.ItemId);
+                if (item == null)
+                    continue;
+
+                recordList.Add(new
+                {
+                    record.Id,
+                    ItemId = item.Id,
+                    ItemName = item.Name,
+                    record.BorrowDate,
+                    record.DueDate,
+                    record.ReturnDate,
+                    record.Status
+                });
+            }
+
+            return Ok(new
+            {
+                borrower.Id,
+                borrower.Name,
+                borrower.IdNumber,
+                borrower.Status,
+                Records = recordList
+            });
+        }
+
+        [HttpPost("{idNumber}/records")]
+        public async Task<IActionResult> CreateBorrowerRecord(string idNumber, [FromBody] BorrowRecordCreateRequest request)
+        {
+            var borrower = await _userRepository.FirstOrDefaultAsync(u => u.IdNumber == idNumber);
+            if (borrower == null)
+                return NotFound("Borrower not found.");
+
+            var item = await _itemRepository.GetByIdAsync(request.ItemId);
+            if (item == null)
+                return NotFound("Item not found.");
+
+            if (item.Quantity <= 0)
+                return BadRequest("Selected item is out of stock.");
+
+            var borrowRecord = new BorrowRecord
+            {
+                UserId = borrower.Id,
+                ItemId = item.Id,
+                BorrowDate = DateTime.UtcNow,
+                DueDate = request.DueDate ?? DateTime.UtcNow.AddDays(14),
+                Status = "Active"
+            };
+
+            await _borrowRepository.AddAsync(borrowRecord);
+            item.Quantity--;
+            item.IsAvailable = item.Quantity > 0;
+            if (borrower.Status != "Good")
+            {
+                borrower.Status = "CurrentlyBorrowing";
+            }
+
+            await _itemRepository.UpdateAsync(item);
+            await _userRepository.UpdateAsync(borrower);
+            await _borrowRepository.SaveChangesAsync();
+            await _itemRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetBorrowerRecords), new { idNumber = borrower.IdNumber }, borrowRecord);
+        }
+
+        [HttpPut("records/{recordId}")]
+        public async Task<IActionResult> UpdateBorrowerRecord(int recordId, [FromBody] BorrowRecordUpdateRequest request)
+        {
+            var record = await _borrowRepository.GetByIdAsync(recordId);
+            if (record == null)
+                return NotFound("Record not found.");
+
+            var borrower = await _userRepository.GetByIdAsync(record.UserId);
+            if (borrower == null)
+                return NotFound("Borrower not found.");
+
+            var item = await _itemRepository.GetByIdAsync(request.ItemId);
+            if (item == null)
+                return NotFound("Item not found.");
+
+            if (record.ItemId != request.ItemId)
+            {
+                var oldItem = await _itemRepository.GetByIdAsync(record.ItemId);
+                if (oldItem == null)
+                    return NotFound("Original item not found.");
+
+                if (record.ReturnDate == null && item.Quantity <= 0)
+                    return BadRequest("Selected item is out of stock.");
+
+                if (record.ReturnDate == null)
+                {
+                    oldItem.Quantity++;
+                    oldItem.IsAvailable = oldItem.Quantity > 0;
+                    item.Quantity--;
+                    item.IsAvailable = item.Quantity > 0;
+                    await _itemRepository.UpdateAsync(oldItem);
+                    await _itemRepository.UpdateAsync(item);
+                }
+
+                record.ItemId = item.Id;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Status))
+            {
+                record.Status = request.Status.Trim();
+                if (record.Status == "Returned" && record.ReturnDate == null)
+                {
+                    record.ReturnDate = DateTime.UtcNow;
+                    if (item != null)
+                    {
+                        item.Quantity++;
+                        item.IsAvailable = true;
+                        await _itemRepository.UpdateAsync(item);
+                    }
+                }
+            }
+
+            if (request.DueDate.HasValue)
+            {
+                record.DueDate = request.DueDate.Value;
+            }
+
+            await _borrowRepository.UpdateAsync(record);
+            await _borrowRepository.SaveChangesAsync();
+            await _itemRepository.SaveChangesAsync();
+
+            var activeRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id && br.ReturnDate == null);
+            borrower.Status = activeRecords.Any() ? "CurrentlyBorrowing" : "Good";
+            await _userRepository.UpdateAsync(borrower);
+            await _userRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("records/{recordId}")]
+        public async Task<IActionResult> DeleteBorrowerRecord(int recordId)
+        {
+            var record = await _borrowRepository.GetByIdAsync(recordId);
+            if (record == null)
+                return NotFound("Record not found.");
+
+            var borrower = await _userRepository.GetByIdAsync(record.UserId);
+            if (borrower == null)
+                return NotFound("Borrower not found.");
+
+            if (record.ReturnDate == null)
+            {
+                var item = await _itemRepository.GetByIdAsync(record.ItemId);
+                if (item != null)
+                {
+                    item.Quantity++;
+                    item.IsAvailable = true;
+                    await _itemRepository.UpdateAsync(item);
+                }
+            }
+
+            await _borrowRepository.DeleteAsync(recordId);
+            await _borrowRepository.SaveChangesAsync();
+
+            var activeRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id && br.ReturnDate == null);
+            borrower.Status = activeRecords.Any() ? "CurrentlyBorrowing" : "Good";
+            await _userRepository.UpdateAsync(borrower);
+            await _userRepository.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{idNumber}/records")]
+        public async Task<IActionResult> CleanBorrowerRecords(string idNumber)
+        {
+            var borrower = await _userRepository.FirstOrDefaultAsync(u => u.IdNumber == idNumber);
+            if (borrower == null)
+                return NotFound();
+
+            var activeRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id && br.ReturnDate == null);
+            if (activeRecords.Any())
+                return BadRequest("Cannot clean records while there are active borrowed items. Return all items first.");
+
+            var allRecords = await _borrowRepository.FindAsync(br => br.UserId == borrower.Id);
+            foreach (var record in allRecords)
+            {
+                await _borrowRepository.DeleteAsync(record.Id);
+            }
+
+            await _borrowRepository.SaveChangesAsync();
+            return NoContent();
+        }
+
         [HttpGet("history/{userId}")]
         public async Task<ActionResult<object>> GetUserHistory(string userId)
         {
