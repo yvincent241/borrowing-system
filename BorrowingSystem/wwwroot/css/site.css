@@ -18,13 +18,13 @@ body {
 }
 
 h1 {
-  text-align: right;
+  text-align: center;
 }
 
 .card {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 10px rgba(245, 242, 242, 0.932);
   padding: 24px;
   margin-bottom: 20px;
 }
@@ -44,18 +44,18 @@ input[type="text"], input[type="number"] {
 
 button {
   background: #0078d4;
-  color: white;
+  color: rgb(243, 240, 240);
   border: none;
-  padding: 12px 18px;
+  padding: 10px 10px;
   border-radius: 6px;
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
+  display: block;
+  margin-block: auto;
   justify-content: center;
 }
 
 button:hover {
-  background: #005a9e;
+  background: rgb(49, 6, 245);
 }
 
 button:disabled {
@@ -79,8 +79,9 @@ input[type="text"], input[type="number"], input[type="password"] {
   width: 100%;
   padding: 10px;
   margin-top: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #f7f2f2;
   border-radius: 6px;
+  font-family: Arial;
 }
 
 #tabs {
